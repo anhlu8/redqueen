@@ -11,7 +11,8 @@ const queueUrl = `https://sqs.${awsRegion}.amazonaws.com/${awsAccountId}/${sqsQu
 
 
 module.exports.lamdaToSQS = async (event, context) => {
-  console.log(event);
+  console.log("event", event);
+  console.log("context", context);
 
   const params = {
     MessageBody: "this is message sent",
@@ -32,5 +33,26 @@ module.exports.lamdaToSQS = async (event, context) => {
         }),
       };
     }
+  });
+};
+
+module.exports.sqsToLambda = async (event, context) => {
+  console.log("event", event);
+  console.log("context", context);
+
+  sqs.sendMessage(params, function (err, data) {
+    event.Records.forEach(record => {
+      const {
+        body
+      } = record;
+      console.log(body);
+    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Go Serverless v1.0! Your function executed successfully!',
+        input: event,
+      })
+    };
   });
 };
