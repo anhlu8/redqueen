@@ -1,7 +1,6 @@
 'use strict';
 const AWS = require('aws-sdk');
-const LAMBDA = new AWS.Lambda()
-const SQS = new AWS.SQS();
+const sqs = new AWS.SQS();
 const awsAccountId = process.env.AWS_ACCOUNTID;
 const sqsQueueName = process.env.SQS_QUEUE_NAME;
 const awsRegion = process.env.MY_AWS_REGION;
@@ -22,7 +21,6 @@ module.exports.lamdaToSQS = async (event, context) => {
   sqs.sendMessage(params, function (err, data) {
     if (err) {
       console.log('error:', 'Fail send message' + err);
-      break
     } else {
       console.log('data:', data.MessageId);
       return {
