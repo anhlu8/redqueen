@@ -38,7 +38,12 @@ module.exports.sqsToLambda = async (event, context) => {
   console.log("event", event);
   console.log("context", context);
 
-  sqs.sendMessage(params, function (err, data) {
+  const params = {
+    WaitTimeSeconds: 5,
+    QueueUrl: queueUrl,
+  };
+
+  sqs.receiveMessage(params, function (err, data) {
     event.Records.forEach(record => {
       const {
         body
