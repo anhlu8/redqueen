@@ -5,7 +5,7 @@ provider:
   profile: ${env:AWS_PROFILE}
   region: ${env:MY_AWS_REGION}
   iamRoleStatements:
-    - Effect: "Allow"
+    - Effect: Allow
       Action:
         - "lambda:*"
       Resource:
@@ -14,6 +14,16 @@ provider:
       Action:
         - sqs:*
       Resource: arn:aws:sqs:${env:MY_AWS_REGION}:${env:AWS_ACCOUNTID}:${env:SQS_QUEUE_NAME}
+    - Effect: "Allow"
+      Action: 
+        - "s3:*"
+      Resource: "arn:aws:s3:::${env:BUCKET_NAME}/*"
+         
+    # - Effect: Allow
+    #   Action: 
+    #     - "dynamodb:GetItem"
+    #   Resource: "arn:aws:dynamodb:*:*:*"
+
 plugins:
   - serverless-dotenv-plugin
   - serverless-sqs-alarms-plugin
@@ -24,11 +34,14 @@ package:
     - node_modules/**
     - test/**
 functions:
+
   lamdaToSQS:
     handler: src/handler.lamdaToSQS
-    description: Lambda function sends msg to SQS queue
-    events: 
-      - schedule: rate(1 minute)
+    description: (Step 1) This lambda function will be triggered by cron at 6:30 pm to send msg to SQS queue
+    cron:  
+      active: true
+      value: '30 18 * * *'
+    events: # The "Events" that trigger this function
       - sqs: 
           arn: arn:aws:sqs:${env:MY_AWS_REGION}:${env:AWS_ACCOUNTID}:${env:SQS_QUEUE_NAME}
           batchSize: 10
@@ -36,7 +49,7 @@ functions:
   sqsToLambda:
     handler: src/handler.sqsToLambda
     description: SQS message triggers Lambda function
-    events: 
+    events: # The "Events" that trigger this function
       - sqs: 
           arn:
             Fn::GetAtt:

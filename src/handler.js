@@ -1,4 +1,5 @@
 'use strict';
+
 const AWS = require('aws-sdk');
 const sqs = new AWS.SQS();
 const awsAccountId = process.env.AWS_ACCOUNTID;
