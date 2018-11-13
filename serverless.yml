@@ -1,0 +1,37 @@
+service: project 
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: ${env:AWS_PROFILE}
+  region: ${env:MY_AWS_REGION}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "lambda:*"
+      Resource:
+        - "*"
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource: arn:aws:sqs:${env:MY_AWS_REGION}:${env:AWS_ACCOUNTID}:${env:SQS_QUEUE_NAME}
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-sqs-alarms-plugin
+package:
+  exclude:
+    - docs/**
+    - helpers/**
+    - node_modules/**
+    - test/**
+functions:
+  hello:
+    handler: src/handler.lamdaToSQS
+    description: Lambda function sends msg to SQS queue
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${env:SQS_QUEUE_NAME}
+
