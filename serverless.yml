@@ -27,7 +27,12 @@ functions:
   hello:
     handler: src/handler.lamdaToSQS
     description: Lambda function sends msg to SQS queue
-
+    events: 
+      - schedule: rate(1 minute)
+      - sqs: 
+          arn: arn:aws:sqs:${env:MY_AWS_REGION}:${env:AWS_ACCOUNTID}:${env:SQS_QUEUE_NAME}
+          batchSize: 10
+          
 resources:
   Resources:
     MyQueue:
