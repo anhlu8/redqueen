@@ -3,7 +3,10 @@
 const bucketName = process.env.BUCKET_NAME;
 const identityPoolId = process.env.IDENTITY_POOL_ID;
 const awsRegion = process.env.MY_AWS_REGION;
+const sqsQueueName = process.env.SQS_QUEUE_NAME;
+const awsAccountId = process.env.AWS_ACCOUNTID;
 const lkDataUrl = process.env.LK_DATA_URL;
+const queueUrl = `https://sqs.${awsRegion}.amazonaws.com/${awsAccountId}/${sqsQueueName}`;
 
 const AWS = require('aws-sdk');
 
@@ -14,19 +17,53 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
 const s3 = new AWS.S3();
 
 module.exports.getZipFile = async (event, context) => {
-    fetch(lkDataUrl).then(data => {
-        const bucketParams = {
-            Bucket: bucketName,
-            Key: 'sample.zip',
-            Body: data
-        };
-        s3.putObject(bucketParams, function (err, data) {
-            if (err) {
-                return console.log("Error", err)
-            }
-            return console.log("Success", data);
+    const receivedParams = {
+        WaitTimeSeconds: 5,
+        QueueUrl: queueUrl,
+    };
+    sqs.receiveMessage(receivedParams, function (err, data) {
+        event.Records.forEach(() => {
+            fetch(lkDataUrl).then(data => {
+                const bucketParams = {
+                    Bucket: bucketName,
+                    Key: 'sample.zip',
+                    Body: data
+                };
+                s3.putObject(bucketParams, function (err, data) {
+                    if (err) {
+                        return console.log("Error", err)
+                    }
+                    return console.log("Success", data);
+                });
+            }).then(() => {
+                const sentParams = {
+                    MessageBody: "this is message sent",
+                    QueueUrl: queueUrl,
+                };
+                sqs.sendMessage(sentParams, function (err, data) {
+                    if (err) {
+                        console.log('error:', 'Fail send message' + err);
+                    } else {
+                        console.log('data:', data.MessageId);
+                        return {
+                            statusCode: 200,
+                            body: JSON.stringify({
+                                message: 'Go Serverless v1.0! Your function executed successfully!',
+                                input: event,
+                            }),
+                        };
+                    }
+                });
+            });
         });
-    });
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Go Serverless v1.0! Your function executed successfully!',
+                input: event,
+            })
+        };
+    })
 }
 
 
