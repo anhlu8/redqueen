@@ -15,6 +15,7 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: identityPoolId,
 });
 const s3 = new AWS.S3();
+const sqs = new AWS.SQS();
 
 module.exports.getZipFile = async (event, context) => {
     const receivedParams = {
