@@ -14,12 +14,12 @@ module.exports.lamdaToSQS = async (event, context) => {
   console.log("event", event);
   console.log("context", context);
 
-  const params = {
+  const sentParams = {
     MessageBody: "this is message sent",
     QueueUrl: queueUrl,
   };
 
-  sqs.sendMessage(params, function (err, data) {
+  sqs.sendMessage(sentParams, function (err, data) {
     if (err) {
       console.log('error:', 'Fail send message' + err);
     } else {
@@ -39,16 +39,13 @@ module.exports.sqsToLambda = async (event, context) => {
   console.log("event", event);
   console.log("context", context);
 
-  const params = {
+  const receivedParams = {
     WaitTimeSeconds: 5,
     QueueUrl: queueUrl,
   };
 
-  sqs.receiveMessage(params, function (err, data) {
-    event.Records.forEach(record => {
-      const {
-        body
-      } = record;
+  sqs.receiveMessage(receivedParams, function (err, data) {
+    event.Records.forEach(({ messageId, body }) => {
       console.log(body);
     });
     return {
